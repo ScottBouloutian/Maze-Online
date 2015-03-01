@@ -3,6 +3,7 @@ var mazeFile = "maze-8000.dat";
 var mazeSize = 8000;
 var chunkSize = 8;
 var numChunks = 1000000;
+var chunkN = 1000;
 var Q = require('q');
 
 exports.chunk = function(req, res) {
@@ -22,6 +23,7 @@ exports.chunk = function(req, res) {
 };
 
 function readChunk(chunkIndex) {
+    console.log('chunkIndex: ' + chunkIndex);
     var deferred = Q.defer();
     if(chunkIndex < 0 || chunkIndex > numChunks - 1) {
         deferred.reject('invalid chunk index');
@@ -31,8 +33,12 @@ function readChunk(chunkIndex) {
                 console.log(status.message);
                 return;
             }
-            var chunkStartIndex = chunkSize * chunkIndex;
+            var chunkRow = chunkIndex / chunkN;
+            var chunkCol = chunkIndex % chunkN;
+            var chunkStartIndex = chunkRow * chunkN * chunkSize * chunkSize + chunkSize * chunkCol;
+            console.log('chunkStartIndex: ' + chunkStartIndex);
             var bufferSize = chunkSize*2/8;
+            console.log('bufferSize: ' + bufferSize);
             var buffer = new Buffer(chunkSize * bufferSize);
             var promises = [];
             for(var row=0;row<chunkSize;row++) {
@@ -49,6 +55,10 @@ function readChunk(chunkIndex) {
                         for(var cell=0;cell<4;cell++) {
                             chunkData.push(bits[cell*2]*2+bits[cell*2+1]);
                         }
+                    }
+                    // Account for the entrance to the maze
+                    if(chunkIndex == 999000) {
+                        chunkData[chunkSize * (chunkSize - 1)] = 3;
                     }
                     deferred.resolve(chunkData);
                 });
