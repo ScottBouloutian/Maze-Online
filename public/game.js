@@ -16,8 +16,8 @@ var Direction = {
 Game = {
   // This defines our grid's size and the size of each of its tiles
   map_grid: {
-    width: 15,
-    height: 15,
+    width: 18,
+    height: 18,
     tile: {
       width: 32,
       height: 32
@@ -43,8 +43,8 @@ Game = {
     Crafty.background('rgb(0, 0, 0)');
     client = new HttpClient();
     client.get('http://localhost:3000/api/maze/chunk?chunk=999000', function(res) {
-        var chunkData = JSON.parse(res).chunkData;
-        var gameState = new GameState(17,17,chunkData);
+        var chunk = JSON.parse(res);
+        var gameState = new GameState(chunk);
         // Draw the game state
         gameState.draw();
         // Allow keyboard input
@@ -63,7 +63,6 @@ Game = {
             gameState.draw();
           }
         });
-        //gameState.debug();
     });
 }
 
@@ -94,13 +93,16 @@ var HttpClient = function() {
 }
 
 // Describes a game state object
-function GameState(width, height, chunkData) {
+function GameState(chunk) {
     this.chunkIndex = 999000;
-    this.chunkData = chunkData;
+    this.chunkData = chunk.data;
     this.playerX = 1;
     this.playerY = 0;
+    this.chunk = chunk;
+    this.stateWidth = 2*chunk.width + 1;
+    this.stateHeight = 2*chunk.height + 1;
     // Initialize the state of the board
-    this.state = new Array(width * height);
+    this.state = new Array(this.stateWidth * this.stateHeight);
     this.clearState();
 }
 GameState.prototype = {
@@ -125,8 +127,8 @@ GameState.prototype = {
         });
 
         // Draw the maze
-        for(var row=7;row>-1;row--) {
-            for(var col=0;col<8;col++) {
+        for(var row=this.chunk.height;row>-1;row--) {
+            for(var col=0;col<this.chunk.width;col++) {
                 this.drawCell(col*2+1,row*2+1);
                 switch(this.chunkData[(7-row)*8+col]) {
                     case 0:
