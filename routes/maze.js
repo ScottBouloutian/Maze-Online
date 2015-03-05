@@ -62,7 +62,7 @@ function readChunk(chunkIndex) {
                     chunk.width++;
                 }
                 // The number of bytes to read in for each row of the chunk
-                var bufferSize = chunk.width / 4;
+                var bufferSize = Math.ceil(chunk.width / 4);
                 var buffer = new Buffer(chunk.width * bufferSize);
                 var promises = [];
                 for (var row = 0; row < chunk.height; row++) {
@@ -74,16 +74,22 @@ function readChunk(chunkIndex) {
                 return Q.all(promises)
                     .then(function() {
                         var chunkData = [];
-                        for (var i = 0; i < chunkSize * bufferSize; i++) {
+                        for (var i = 0; i < buffer.length; i++) {
                             var byte = buffer[i];
                             var bits = toBinary(byte);
-                            for (var cell = 0; cell < 4; cell++) {
+                            // The number of relevant cells in the current byte
+                            var cellsInByte = 4;
+                            // If we are looking at the last byte in a row
+                            if(i%bufferSize === bufferSize - 1) {
+                                cellsInByte = 4 - bufferSize % 4;
+                            }
+                            for (var cell = 0; cell < cellsInByte; cell++) {
                                 chunkData.push(bits[cell * 2] * 2 + bits[cell * 2 + 1]);
                             }
                         }
                         // The entrance to the maze will be incorrect, fix it here
                         if (chunkIndex == 999000) {
-                            chunkData[chunkSize * (chunkSize - 1)] = 3;
+                            chunkData[chunk.width * (chunk.height - 1)] = 3;
                         }
                         chunk.data = chunkData;
                         return chunk;

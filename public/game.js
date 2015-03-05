@@ -16,8 +16,8 @@ var Direction = {
 Game = {
   // This defines our grid's size and the size of each of its tiles
   map_grid: {
-    width: 18,
-    height: 18,
+    width: 17,
+    height: 17,
     tile: {
       width: 32,
       height: 32
@@ -44,6 +44,7 @@ Game = {
     client = new HttpClient();
     client.get('http://localhost:3000/api/maze/chunk?chunk=999000', function(res) {
         var chunk = JSON.parse(res);
+        console.log(chunk);
         var gameState = new GameState(chunk);
         // Draw the game state
         gameState.draw();
@@ -63,6 +64,8 @@ Game = {
             gameState.draw();
           }
         });
+        // Print out the game state
+        gameState.debug();
     });
 }
 
@@ -102,10 +105,11 @@ function GameState(chunk) {
     this.stateWidth = 2*chunk.width + 1;
     this.stateHeight = 2*chunk.height + 1;
     // Initialize the state of the board
-    this.state = new Array(this.stateWidth * this.stateHeight);
+    this.state = new Array(17 * 17);
     this.clearState();
 }
 GameState.prototype = {
+    // Clear the state array
     clearState: function() {
         for (var i = 0; i < this.state.length; i++) {
           this.state[i] = CellType.WALL;
@@ -113,11 +117,11 @@ GameState.prototype = {
     },
 
     getCell: function(x,y) {
-        return this.state[y*8+x];
+        return this.state[y*17+x];
     },
 
     setCell: function(x,y,type) {
-        this.state[y*8+x] = type;
+        this.state[y*17+x] = type;
     },
 
     draw: function() {
@@ -127,21 +131,23 @@ GameState.prototype = {
         });
 
         // Draw the maze
-        for(var row=this.chunk.height;row>-1;row--) {
+        for(var row=0;row<this.chunk.height;row++) {
             for(var col=0;col<this.chunk.width;col++) {
-                this.drawCell(col*2+1,row*2+1);
-                switch(this.chunkData[(7-row)*8+col]) {
+                var stateRow = row*2+1;
+                var stateCol = col*2+1;
+                this.drawCell(stateCol,stateRow);
+                switch(this.chunkData[(this.chunk.height-row-1)*this.chunk.width+col]) {
                     case 0:
-                        this.drawCell(col*2+1+1,row*2+1);
+                        this.drawCell(stateCol+1,stateRow);
                         break;
                     case 1:
-                        this.drawCell(col*2+1-1,row*2+1);
+                        this.drawCell(stateCol-1,stateRow);
                         break;
                     case 2:
-                        this.drawCell(col*2+1,row*2+1+1);
+                        this.drawCell(stateCol,stateRow+1);
                         break;
                     case 3:
-                        this.drawCell(col*2+1,row*2+1-1);
+                        this.drawCell(stateCol,stateRow-1);
                         break;
                 }
             }
@@ -151,7 +157,9 @@ GameState.prototype = {
     },
 
     drawCell: function(x,y) {
-        this.setCell(x,y,CellType.EMPTY);
+        if(x<17 && y<17) {
+            this.setCell(x,y,CellType.EMPTY);
+        }
         Crafty.e('2D, Canvas, Color')
           .attr({
             x: x * Game.map_grid.tile.width,
@@ -170,17 +178,18 @@ GameState.prototype = {
             }
             break;
           case Direction.RIGHT:
-              if(this.playerX == 14) {
-                  // Move a sector to the right
-                  this.chunkIndex++;
-                  var self = this;
-                  this.playerX = 0;
-                  this.queryChunkData(function() {
-                      self.draw();
-                  });
-              } else if(this.getCell(this.playerX + 1,this.playerY) === CellType.EMPTY) {
+            //   if(this.playerX == 14) {
+            //       // Move a sector to the right
+            //       this.chunkIndex++;
+            //       var self = this;
+            //       this.playerX = 0;
+            //       this.queryChunkData(function() {
+            //           self.draw();
+            //       });
+            //   } else
+            if(this.getCell(this.playerX + 1,this.playerY) === CellType.EMPTY) {
                 this.playerX++;
-              }
+            }
             break;
           case Direction.UP:
               if(this.getCell(this.playerX,this.playerY - 1) === CellType.EMPTY) {
@@ -196,7 +205,6 @@ GameState.prototype = {
     },
 
     queryChunkData: function(callback) {
-        console.log('querying');
         var client = new HttpClient();
         var self = this;
         client.get('http://localhost:3000/api/maze/chunk?chunk=' + this.chunkIndex, function(res) {
