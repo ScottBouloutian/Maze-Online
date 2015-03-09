@@ -30,7 +30,7 @@ function readChunk(chunkIndex) {
         return Q.nfcall(fs.open, mazeFile, 'r')
             .then(function(fd) {
                 // The row and column of the specified chunk in the grid of all possible chunks
-                var chunkRow = chunkIndex / chunkN;
+                var chunkRow = Math.floor(chunkIndex / chunkN);
                 var chunkCol = chunkIndex % chunkN;
                 // The index of the first cell in the chunk in the grid of all possible cells
                 var chunkStartIndex = chunkRow * chunkN * chunkSize * chunkSize + chunkSize * chunkCol;
@@ -61,12 +61,21 @@ function readChunk(chunkIndex) {
                     // Add buffer space along the right of the chunk
                     chunk.width++;
                 }
+                // Boolean specifying if there is an offset into the first byte of the row
+                var firstByteOffset = (4 - chunkStartIndex % 4 < 4);
+                console.log('chunkStartIndex: ' + chunkStartIndex);
+                console.log('firstByteOffset: ' + firstByteOffset);
                 // The number of bytes to read in for each row of the chunk
-                var bufferSize = Math.ceil(chunk.width / 4);
+                var bufferSize;
+                if(firstByteOffset) {
+                    bufferSize = Math.ceil((chunk.width - 1)/4) + 1;
+                } else {
+                    bufferSize = Math.ceil(chunk.width/4);
+                }
                 var buffer = new Buffer(chunk.width * bufferSize);
                 var promises = [];
                 for (var row = 0; row < chunk.height; row++) {
-                    var rowStartByte = (chunkStartIndex + row * mazeSize) / 4;
+                    var rowStartByte = Math.floor((chunkStartIndex + row * mazeSize) / 4);
                     var promise = Q.nfcall(fs.read, fd, buffer, row * bufferSize, bufferSize, rowStartByte);
                     promises.push(promise);
                 }
@@ -74,16 +83,23 @@ function readChunk(chunkIndex) {
                 return Q.all(promises)
                     .then(function() {
                         var chunkData = [];
+                        console.log('bufferSize: ' + bufferSize);
                         for (var i = 0; i < buffer.length; i++) {
                             var byte = buffer[i];
                             var bits = toBinary(byte);
-                            // The number of relevant cells in the current byte
-                            var cellsInByte = 4;
+                            var startCellInByte = 0;
+                            var endCellInByte = 4;
+                            // If we are looking at the first byte in a row
+                            if(i%bufferSize === 0) {
+                                startCellInByte = chunkStartIndex % 4;
+                            }
                             // If we are looking at the last byte in a row
                             if(i%bufferSize === bufferSize - 1) {
-                                cellsInByte = 4 - bufferSize % 4;
+                                endCellInByte = (chunkStartIndex + chunk.width) % 4;
+                                console.log(endCellInByte);
                             }
-                            for (var cell = 0; cell < cellsInByte; cell++) {
+                            console.log(i + ': ' + startCellInByte + ' to ' + endCellInByte);
+                            for (var cell = startCellInByte; cell < endCellInByte; cell++) {
                                 chunkData.push(bits[cell * 2] * 2 + bits[cell * 2 + 1]);
                             }
                         }
