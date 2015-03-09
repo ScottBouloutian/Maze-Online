@@ -63,8 +63,8 @@ var Game = {
         });
 
         // Draw the chunk of the maze
-        for (var row = 0; row < Game.state.getHeight(); row++) {
-            for (var col = 0; col < Game.state.getWidth(); col++) {
+        for (var row = 0; row < Game.state.chunk.height; row++) {
+            for (var col = 0; col < Game.state.chunk.width; col++) {
                 var stateRow = (7 - row) * 2 + 1;
                 var stateCol = col * 2 + 1;
                 if (Game.state.chunk.offsetX === 1) {
@@ -95,18 +95,18 @@ var Game = {
     },
 
     drawCell: function(x, y) {
-        if (x < 17 && y < 17) {
+        if (x < Game.state.width && y < Game.state.height) {
             Game.state.setCell(x, y, CellType.EMPTY);
         }
         drawEntity(x, y, 'rgb(255, 255, 255)');
     },
 
     width: function() {
-        return (Game.state.getWidth() * 2 + 1 - 2) * tile.width;
+        return Game.state.width * tile.width;
     },
 
     height: function() {
-        return (Game.state.getHeight() * 2 + 1) * tile.height;
+        return Game.state.height * tile.height;
     }
 }
 

@@ -12,18 +12,12 @@ GameState.prototype = {
         var self = this;
         queryChunk(this.chunkIndex, function(chunk) {
             self.chunk = chunk;
-            self.state = new Array(chunk.width * chunk.height);
+            self.width = 8*2+1;
+            self.height = (8 + self.chunk.offsetY) * 2 + 1;
+            self.state = new Array(self.width * self.height);
             self.clearState();
             callback();
         });
-    },
-
-    getWidth: function() {
-        return this.chunk.width;
-    },
-
-    getHeight: function() {
-        return this.chunk.height;
     },
 
     // Clear the state array
@@ -34,11 +28,11 @@ GameState.prototype = {
     },
 
     getCell: function(x, y) {
-        return this.state[y * 17 + x];
+        return this.state[y * this.height + x];
     },
 
     setCell: function(x, y, type) {
-        this.state[y * 17 + x] = type;
+        this.state[y * this.height + x] = type;
     },
 
     move: function(direction, callback) {
@@ -80,15 +74,7 @@ GameState.prototype = {
                 }
                 break;
         }
-    },
-
-    debug: function() {
-        console.log('there are ' + this.state.length + ' elements in state');
-        this.state.forEach(function(type) {
-            console.log(type);
-        });
-    },
-
+    }
 
 }
 
