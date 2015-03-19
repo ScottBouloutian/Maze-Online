@@ -63,8 +63,6 @@ function readChunk(chunkIndex) {
                 }
                 // Boolean specifying if there is an offset into the first byte of the row
                 var firstByteOffset = (4 - chunkStartIndex % 4 < 4);
-                console.log('chunkStartIndex: ' + chunkStartIndex);
-                console.log('firstByteOffset: ' + firstByteOffset);
                 // The number of bytes to read in for each row of the chunk
                 var bufferSize;
                 if(firstByteOffset) {
@@ -83,7 +81,6 @@ function readChunk(chunkIndex) {
                 return Q.all(promises)
                     .then(function() {
                         var chunkData = [];
-                        console.log('bufferSize: ' + bufferSize);
                         for (var i = 0; i < buffer.length; i++) {
                             var byte = buffer[i];
                             var bits = toBinary(byte);
@@ -96,9 +93,7 @@ function readChunk(chunkIndex) {
                             // If we are looking at the last byte in a row
                             if(i%bufferSize === bufferSize - 1) {
                                 endCellInByte = (chunkStartIndex + chunk.width) % 4;
-                                console.log(endCellInByte);
                             }
-                            console.log(i + ': ' + startCellInByte + ' to ' + endCellInByte);
                             for (var cell = startCellInByte; cell < endCellInByte; cell++) {
                                 chunkData.push(bits[cell * 2] * 2 + bits[cell * 2 + 1]);
                             }

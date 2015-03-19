@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript" src="lib/crafty-min.js"></script>
+    <script type="text/javascript" src="gameState.js"></script>
+    <script type="text/javascript" src="game.js"></script>
+</head>
+
+<body>
+    <div id="game"></div>
+    <form action="/api/user/logout" method="post">
+        <div>
+            <input type="submit" value="Log Out"/>
+        </div>
+    </form>
+    <script>
+        Game.start();
+    </script>
+</body>
+
+</html>

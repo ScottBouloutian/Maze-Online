@@ -14,8 +14,8 @@ var Direction = {
 };
 
 var tile = {
-    width: 32,
-    height: 32
+    width: 24,
+    height: 24
 };
 
 var startChunk = 999000;
