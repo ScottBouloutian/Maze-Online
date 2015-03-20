@@ -4,8 +4,10 @@ var MongoClient = require('mongodb').MongoClient,
 exports.login = function(req, res) {
     var username = req.body.username;
     var password = req.body.password;
+    var db;
     Q.nfcall(MongoClient.connect, 'mongodb://127.0.0.1:27017/maze-db')
-        .then(function(db) {
+        .then(function(database) {
+            db = database;
             var users = db.collection('users');
             return Q.npost(users, 'findOne', [{
                 username: username,
@@ -13,8 +15,13 @@ exports.login = function(req, res) {
             }]);
         })
         .then(function(user) {
+            db.close();
             if (user) {
-                req.session.user_id = username;
+                delete user._id;
+                delete user.password;
+                console.log('A user logged in:');
+                console.log(user);
+                req.session.user = user;
                 res.redirect('/');
             } else {
                 res.json({
@@ -30,6 +37,6 @@ exports.login = function(req, res) {
 };
 
 exports.logout = function(req, res) {
-    delete req.session.user_id;
+    delete req.session.user;
     res.redirect('/');
 }

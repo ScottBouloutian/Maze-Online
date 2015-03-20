@@ -2,21 +2,24 @@
 <html>
 
 <head>
+    <script type="text/javascript">
+        var user = <%-JSON.stringify(user)%>;
+        console.log(user)
+    </script>
     <script type="text/javascript" src="lib/crafty-min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="gameState.js"></script>
     <script type="text/javascript" src="game.js"></script>
+    <script type="text/javascript" src="network.js"></script>
 </head>
 
 <body>
     <div id="game"></div>
-    <form action="/api/user/logout" method="post">
+    <form action="/api/auth/logout" method="post">
         <div>
             <input type="submit" value="Log Out"/>
         </div>
     </form>
-    <script>
-        Game.start();
-    </script>
 </body>
 
 </html>
