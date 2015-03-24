@@ -17,8 +17,7 @@ exports.login = function(req, res) {
         .then(function(user) {
             db.close();
             if (user) {
-                delete user._id;
-                delete user.password;
+                formatUserDocument(user);
                 console.log('A user logged in:');
                 console.log(user);
                 req.session.user = user;
@@ -39,4 +38,16 @@ exports.login = function(req, res) {
 exports.logout = function(req, res) {
     delete req.session.user;
     res.redirect('/');
+}
+
+function formatUserDocument(user) {
+    delete user._id;
+    delete user.password;
+    if(!user.position) {
+        user.position = {
+            chunk: 999000,
+            x: 1,
+            y: 0
+        };
+    }
 }

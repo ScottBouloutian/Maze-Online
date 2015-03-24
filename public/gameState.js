@@ -4,7 +4,9 @@ function GameState(chunkIndex) {
     this.player = {
         x: 1,
         y: 0
-    }
+    };
+    // An array of other players currently in this chunk
+    this.visiblePlayers = [];
 }
 GameState.prototype = {
 
@@ -35,6 +37,7 @@ GameState.prototype = {
         this.state[y * this.height + x] = type;
     },
 
+    // Moves the player if possible. The callback is called if the player's position has changed.
     move: function(direction, callback) {
         switch (direction) {
             case Direction.LEFT:
@@ -42,11 +45,11 @@ GameState.prototype = {
                     this.chunkIndex--;
                     this.player.x = 16;
                     this.queryMazeServer(function() {
-                        callback();
+                        callback(true);
                     });
                 } else if (this.getCell(this.player.x - 1, this.player.y) === CellType.EMPTY) {
                     this.player.x--;
-                    callback();
+                    callback(false);
                 }
                 break;
             case Direction.RIGHT:
@@ -54,23 +57,23 @@ GameState.prototype = {
                     this.chunkIndex++;
                     this.player.x = 0;
                     this.queryMazeServer(function() {
-                        callback();
+                        callback(true);
                     });
                 } else if (this.getCell(this.player.x + 1, this.player.y) === CellType.EMPTY) {
                     this.player.x++;
-                    callback();
+                    callback(false);
                 }
                 break;
             case Direction.UP:
                 if (this.getCell(this.player.x, this.player.y - 1) === CellType.EMPTY) {
                     this.player.y--;
-                    callback();
+                    callback(false);
                 }
                 break;
             case Direction.DOWN:
                 if (this.getCell(this.player.x, this.player.y + 1) === CellType.EMPTY) {
                     this.player.y++;
-                    callback();
+                    callback(false);
                 }
                 break;
         }

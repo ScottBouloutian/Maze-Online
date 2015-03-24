@@ -26,9 +26,14 @@ app.set('view engine', 'ejs');
 //app.use(express.logger('dev'));
 app.use(myCookieParser);
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(methodOverride());
-app.use(expressSession({ secret: 'secret', store: sessionStore }));
+app.use(expressSession({
+    secret: 'secret',
+    store: sessionStore
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(errorHandler());
 
@@ -49,14 +54,23 @@ var sessionSockets = new SessionSockets(io, sessionStore, myCookieParser);
 sessionSockets.on('connection', function(err, socket, session) {
     console.log('a user connected');
     var user;
-    if(session) {
+    if (session) {
         user = session.user;
         world.addUser(user);
+        var intervalID = setInterval(function() {
+            socket.emit('visible_players', world.visiblePlayers(user));
+        }, 500);
+        socket.on('move', function(position) {
+            world.updatePosition(user, position);
+        });
+        socket.on('disconnect', function() {
+            clearInterval(intervalID);
+            console.log('user disconnected');
+            world.removeUser(user);
+        });
+    } else {
+        socket.emit('server_error', 'server error');
     }
-    socket.on('disconnect', function() {
-        console.log('user disconnected');
-        world.removeUser(user);
-    });
 });
 
 function checkAuth(req, res, next) {

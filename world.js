@@ -23,6 +23,17 @@ World.prototype = {
                 return;
             }
         });
+    },
+    updatePosition: function(user, position) {
+        user.position = position;
+    },
+    visiblePlayers: function(user) {
+        return this.players.filter(function(player) {
+            return player.position.chunk === user.position.chunk && player.username!=user.username;
+        });
+    },
+    printUsers: function() {
+        console.log(this.players);
     }
 };
 
