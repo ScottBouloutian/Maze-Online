@@ -83,7 +83,7 @@ GameState.prototype = {
 
 function queryChunk(chunkIndex, callback) {
     var client = new HttpClient();
-    client.get('http://localhost:3000/api/maze/chunk?chunk=' + chunkIndex, function(res) {
+    client.get('/api/maze/chunk?chunk=' + chunkIndex, function(res) {
         var chunk = JSON.parse(res);
         callback(chunk);
     });
